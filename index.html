@@ -4,73 +4,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>千葉市の天気と気温</title>
+    <title>千葉市の天気</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f8ff;
+            background-color: #e0f7f9;
+            color: #2c7c84;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
         }
 
         .weather-container {
-            text-align: center;
-            padding: 20px;
-            border: 1px solid #ccc;
+            border: 2px solid #2c7c84;
             border-radius: 10px;
-            background-color: #ffffff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            padding: 20px;
+            background-color: #f0fefe;
+        }
+
+        .weather-header {
+            font-size: 2em;
+            margin-bottom: 20px;
         }
 
         .temperature {
-            font-size: 2em;
-            margin: 10px 0;
-        }
-
-        .weather {
             font-size: 1.5em;
         }
+
+        .emoji {
+            font-size: 3em;
+            margin-top: 10px;
+        }
     </style>
+    <script>
+        async function fetchWeather() {
+            const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.6074&longitude=140.1063&current_weather=true&timezone=Asia/Tokyo');
+            const data = await response.json();
+            const weatherCode = data.current_weather.weathercode;
+            const temperature = data.current_weather.temperature;
+            const weatherContainer = document.getElementById('weather_container');
+            const emoji = weatherToEmoji(weatherCode);
+
+            weatherContainer.innerHTML = `
+                <div class="temperature">気温: ${temperature}°C</div><div class="emoji">${emoji}</div>
+            `;
+        }
+
+        function weatherToEmoji(code) {
+            switch (code) {
+                case 0: return '☀️'; // 晴れ
+                case 1: case 2: case 3: return '⛅'; // 主に晴れまたは曇り
+                case 45: case 48: return '🌫️'; // 霧
+                case 51: case 53: case 55: case 56: case 57: return '🌧️'; // 霧雨
+                case 61: case 63: case 65: return '🌦️'; // 雨
+                case 66: case 67: return '🌨️'; // 着氷性の雨
+                case 71: case 73: case 75: case 77: return '❄️'; // 雪
+                case 80: case 81: case 82: return '🌧️'; // にわか雨
+                case 95: case 96: case 99: return '⛈️'; // 雷雨
+                default: return '❓'; // 不明
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchWeather);
+    </script>
 </head>
 
 <body>
     <div class="weather-container">
-        <div id="temperature" class="temperature">--°C</div>
-        <div id="weather" class="weather">Loading...</div>
+        <div class="weather-header">千葉市の天気</div>
+        <div id="weather_container">読み込み中...</div>
     </div>
-    <script>
-        async function fetchWeather() {
-            const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.6074&longitude=140.1064&current_weather=true');
-            const data = await response.json();
-            const temperature = data.current_weather.temperature;
-            const weatherCode = data.current_weather.weathercode;
-
-            document.getElementById('temperature').textContent = `${temperature}°C`;
-            document.getElementById('weather').textContent = getWeatherEmoji(weatherCode);
-        }
-
-        function getWeatherEmoji(code) {
-            switch (code) {
-                case 0: return '☀️';  // Clear sky
-                case 1: case 2: case 3: return '🌤️';  // Mainly clear, partly cloudy, and overcast
-                case 45: case 48: return '🌫️';  // Fog and depositing rime fog
-                case 51: case 53: case 55: return '🌧️';  // Drizzle
-                case 61: case 63: case 65: return '🌧️';  // Rain
-                case 66: case 67: return '🌨️';  // Freezing Rain
-                case 71: case 73: case 75: return '❄️';  // Snow fall
-                case 77: return '❄️';  // Snow grains
-                case 80: case 81: case 82: return '🌧️';  // Showers
-                case 85: case 86: return '❄️';  // Snow showers
-                case 95: return '⛈️';  // Thunderstorm
-                case 96: case 99: return '⛈️';  // Thunderstorm with slight and heavy hail
-                default: return '❓';  // Unknown weather code
-            }
-        }
-
-        fetchWeather();
-    </script>
 </body>
 
 </html>
